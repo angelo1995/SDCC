@@ -1,7 +1,8 @@
 # SDCC
 Progetto per il corso di sistemi distribuiti e cloud computing. Università della Calabria.
 
-#Traccia progetto
+# Traccia progetto
+
 Progettare e implementare un sistema distribuito per la gestione decentralizzata del calendario di più persone che lavorano in una stessa azienda. Il sistema deve consentire agli utenti: 
 ●	di inserire uno o più appuntamenti a cui invitare altri colleghi e visualizzare gli appuntamenti fissati con le persone che parteciperanno.
 ●	Di ricevere le notifiche degli appuntamenti a cui sono stati invitati e di accettare o meno gli inviti e visualizzare gli appuntamenti accettati.
