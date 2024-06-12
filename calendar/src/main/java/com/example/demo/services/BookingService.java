@@ -8,6 +8,7 @@ import java.util.List;
 import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -65,9 +66,9 @@ public class BookingService {
 	}	
 
 	@Transactional(readOnly = false)
-	public ReservationResponse bookingReservation(ReservationPayload reservation) {
+	public ReservationResponse bookingReservation(Jwt jwt, ReservationPayload reservation) {
 		checkBookingReservation(reservation);
-		String email = "test";
+		String email = jwt.getClaimAsString("email");
 		Optional<Costumer> costumer_optional = userRepository.findByEmail(email);
 		Optional<Slot> slot_optional = null;
 		Slot[] slots = null;
@@ -116,8 +117,8 @@ public class BookingService {
 	}
 
 	@Transactional(readOnly = true)
-	public List<ReservationPayload> getAllReservation(){
-		String email = "test";
+	public List<ReservationPayload> getAllReservation(Jwt jwt){
+		String email = jwt.getClaimAsString("email");
 		Costumer costumer = userRepository.findByEmail(email).get();
 		List<ReservationPayload> list = costumer.getReservations().stream().map(ReservationPayload::new).toList();
 		return list;

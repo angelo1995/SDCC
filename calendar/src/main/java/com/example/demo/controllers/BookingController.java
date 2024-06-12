@@ -3,6 +3,9 @@ package com.example.demo.controllers;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -25,8 +28,9 @@ public class BookingController {
 	private BookingService service;
 	
 	@PostMapping("/meeting")
-	public ReservationResponse bookingReservation(@RequestBody ReservationPayload reservation) {
-		return service.bookingReservation(reservation);
+	@PreAuthorize("hasAuthority('user')")
+	public ReservationResponse bookingReservation(@AuthenticationPrincipal Jwt jwt, @RequestBody ReservationPayload reservation) {
+		return service.bookingReservation(jwt, reservation);
 	}
 	
 	@PostMapping("/view/meeting")
@@ -35,8 +39,9 @@ public class BookingController {
 	}
 	
 	@GetMapping("/view/meeting")
-	public List<ReservationPayload> viewAllBooking() {
-		return service.getAllReservation();
+	@PreAuthorize("hasAuthority('user')")
+	public List<ReservationPayload> viewAllBooking(@AuthenticationPrincipal Jwt jwt) {
+		return service.getAllReservation(jwt);
 	}
 
 }
