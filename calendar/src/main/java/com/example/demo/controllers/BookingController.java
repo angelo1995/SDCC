@@ -13,6 +13,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.example.demo.annotations.AutoSignup;
 import com.example.demo.data.ReservationPayload;
 import com.example.demo.data.ReservationResponse;
 import com.example.demo.data.WindowWeekRequest;
@@ -29,7 +30,8 @@ public class BookingController {
 	
 	@PostMapping("/meeting")
 	@PreAuthorize("hasAuthority('user')")
-	public ReservationResponse bookingReservation(@AuthenticationPrincipal Jwt jwt, @RequestBody ReservationPayload reservation) {
+	@AutoSignup
+	public ReservationResponse bookingMeeting(@AuthenticationPrincipal Jwt jwt, @RequestBody ReservationPayload reservation) {
 		return service.bookingReservation(jwt, reservation);
 	}
 	
@@ -40,6 +42,7 @@ public class BookingController {
 	
 	@GetMapping("/view/meeting")
 	@PreAuthorize("hasAuthority('user')")
+	@AutoSignup
 	public List<ReservationPayload> viewAllBooking(@AuthenticationPrincipal Jwt jwt) {
 		return service.getAllReservation(jwt);
 	}
