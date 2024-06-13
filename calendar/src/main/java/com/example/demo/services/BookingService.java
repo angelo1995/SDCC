@@ -12,6 +12,7 @@ import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.example.demo.annotations.FoundbleUser;
 import com.example.demo.data.DayofWeek;
 import com.example.demo.data.ReservationPayload;
 import com.example.demo.data.ReservationResponse;
@@ -66,6 +67,7 @@ public class BookingService {
 	}	
 
 	@Transactional(readOnly = false)
+	@FoundbleUser
 	public ReservationResponse bookingReservation(Jwt jwt, ReservationPayload reservation) {
 		checkBookingReservation(reservation);
 		String email = jwt.getClaimAsString("email");
@@ -117,6 +119,7 @@ public class BookingService {
 	}
 
 	@Transactional(readOnly = true)
+	@FoundbleUser
 	public List<ReservationPayload> getAllReservation(Jwt jwt){
 		String email = jwt.getClaimAsString("email");
 		Costumer costumer = userRepository.findByEmail(email).get();
