@@ -11,11 +11,9 @@ import com.example.demo.entities.Costumer;
 import com.example.demo.exceptions.MalformedJwtException;
 import com.example.demo.services.CostumerService;
 
-import lombok.extern.slf4j.Slf4j;
-
 @Aspect
 @Component
-@Slf4j
+//@Slf4j
 public class RegistrationAspect {
 	
 	@Autowired
@@ -26,17 +24,17 @@ public class RegistrationAspect {
 		Jwt jwt = null;
 		Costumer newUser = null;
 		
-		log.info("auto sign up");
+		//log.info("auto sign up");
 		jwt = getJwt(joinPoint.getArgs());
 		checkMap(jwt);
 		if(service.getByEmail(jwt).isPresent()) {
-			log.info("user already exist");
+			//log.info("user already exist");
 			return;
 		}
 	    newUser = map(jwt);
 	    service.createUser(newUser);
-	    log.info("jwt token: " + jwt.getTokenValue());
-	    log.info("new user was created: " + newUser.toString());
+	    //log.info("jwt token: " + jwt.getTokenValue());
+	    //log.info("new user was created: " + newUser.toString());
 	}
 	
 	private Jwt getJwt(Object[] objects) {
@@ -45,7 +43,7 @@ public class RegistrationAspect {
 				return (Jwt) object;
 			}
 		}
-		throw new RuntimeException("exception");
+		throw new RuntimeException("jwt not found. Problably you have to add @AuthenticationPrincipal Jwt jwt");
 	}
 	
 	private void checkMap(Jwt jwt) {
@@ -59,8 +57,8 @@ public class RegistrationAspect {
 		checkMap(jwt);
 		Costumer newUser = new Costumer();
 	    newUser.setEmail(jwt.getClaimAsString(EMAIL));
-	    newUser.setFirst_name(jwt.getClaimAsString(NAME));
-	    newUser.setLast_name(jwt.getClaimAsString(SURNAME));
+	    newUser.setName(jwt.getClaimAsString(NAME));
+	    newUser.setSurname(jwt.getClaimAsString(SURNAME));
 	    newUser.setUsername(jwt.getClaimAsString(USERNAME));
 		return newUser;
 	}

@@ -27,7 +27,7 @@ public class Slot {
     private long id;
 	
 	@Basic
-    @Column(nullable = false, unique = true)
+    @Column(nullable = false, unique = false)
     private Timestamp date;
 	
 	@Basic
