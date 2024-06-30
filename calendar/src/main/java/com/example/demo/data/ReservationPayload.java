@@ -15,16 +15,21 @@ public class ReservationPayload {
 	
 	private long id;
 	
+	private String title;
+	
+	private String description;
+	
 	private Timestamp date;
 	
 	private int duration;
 	
-	private String description;
+	private String priority;
 	
-	private int players;
+	private List<Long> guests;
 	
 	public ReservationPayload(Meeting reservation) {
 		this.id = reservation.getId();
+		this.title = reservation.getTitle();
 		this.description = reservation.getDescription();
 		
 		List<Slot> slots = reservation.getSlots();

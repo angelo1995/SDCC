@@ -30,7 +30,7 @@ public class Meeting {
 	
 	@Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private long id;
+    private Long id;
 
     @Basic
     @Column(nullable = true)
@@ -58,10 +58,10 @@ public class Meeting {
 	@JsonIgnore
 	private List<Slot> slots = new ArrayList<>();
     
-    @OneToMany(cascade = CascadeType.REMOVE)
-	@ToString.Exclude
+    @OneToMany(mappedBy = "meeting")
+    @ToString.Exclude
 	@JsonIgnore
-	private List<Costumer> guests = new ArrayList<>();
+    private List<MeetingRelation> meetings = new ArrayList<>();
     
     @Version
     @Column(name = "version", nullable = false)
@@ -73,6 +73,19 @@ public class Meeting {
 	public Meeting(String description, Costumer user) {
 		this.description = description;
 		this.user = user;
+	}
+	
+	public String getPriorityAsString() {
+		if(this.priority < 0 || this.priority > 3) {
+			throw new IllegalStateException();
+		}
+		if(this.priority == 0) {
+			return "bassa";
+		}
+		if(this.priority == 1) {
+			return "media";
+		}
+		return "alta";
 	}
 	
 }

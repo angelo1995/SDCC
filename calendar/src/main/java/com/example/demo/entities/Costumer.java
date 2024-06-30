@@ -16,16 +16,18 @@ import jakarta.persistence.Version;
 import lombok.AccessLevel;
 import lombok.Data;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
 
 @Entity
 @Data
+@NoArgsConstructor
 public class Costumer {
 
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
-	private long id;
+	private Long id;
 
 	@Basic
 	@Column(nullable = true, length = 255)
@@ -33,15 +35,25 @@ public class Costumer {
 
 	@Basic
 	@Column(nullable = true, length = 255)
-	private String first_name;
+	private String name;
 
 	@Basic
 	@Column(nullable = true, length = 255)
-	private String last_name;
+	private String surname;
 
 	@Basic
 	@Column(nullable = true, length = 255)
 	private String username;
+	
+	@OneToMany(mappedBy = "user")
+	@ToString.Exclude
+	@JsonIgnore
+	private List<Meeting> reservations = new ArrayList<>();
+	
+	@OneToMany(mappedBy = "costumer")
+	@ToString.Exclude
+	@JsonIgnore
+    private List<MeetingRelation> meetings = new ArrayList<>();
 	
 	@Setter(value=AccessLevel.NONE)
 	@Getter(value=AccessLevel.NONE)
@@ -50,9 +62,9 @@ public class Costumer {
     @JsonIgnore
     private long version;
 
-	@OneToMany(mappedBy = "user")
-	@ToString.Exclude
-	@JsonIgnore
-	private List<Meeting> reservations = new ArrayList<>();
-
+	public Costumer(String first_name, String last_name) {
+		this.name = first_name;
+		this.surname = last_name;
+	}
+	
 }
