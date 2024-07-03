@@ -268,15 +268,53 @@ public class BookingService {
 	@Transactional(readOnly = true)
 	public MeetingDetailData getMeetingDetail(long id) {
 		Optional<Meeting> optional_meeting = reservationRepository.findById(id);
-		MeetingDetailData meetingDetail = optional_meeting.map(MeetingDetailData::new).orElseThrow();
+		MeetingDetailData meetingDetail = optional_meeting.map(MeetingDetailData::new).orElseThrow(() -> new BookingException("meeting non presente"));
 		return meetingDetail;
 	}
 
+	@Transactional(readOnly = true)
 	public List<MeetingData> getMeetingsOnSlot(Timestamp date) {
 		List<Meeting> meetings = reservationRepository.findBySlots_Date(date);
 		return meetings.stream()
 				.map(MeetingData::new)
 				.toList();
+	}
+
+	@Transactional(readOnly = true)
+	@FoundbleUser
+	public List<ReservationPayload> getAllInvitations(Jwt jwt, int status) {
+		String email = jwt.getClaimAsString("email");
+		Costumer costumer = userRepository.findByEmail(email).get();
+		List<ReservationPayload> list = costumer.getMeetings().stream()
+				.filter((m)-> m.getStatus() == status)
+				.map(ReservationPayload::new)
+				.toList();
+		return list;
+	}
+	
+	@Transactional(readOnly = false)
+	@FoundbleUser
+	public boolean setInvitationStatus(Jwt jwt, long id_meeting, int status) {
+		String email = jwt.getClaimAsString("email");
+		Costumer costumer = userRepository.findByEmail(email).get();
+		MeetingRelation meeting = null;
+		List<MeetingRelation> list = costumer.getMeetings().stream().filter((m)-> m.getMeeting().getId() == id_meeting).toList();
+		if(list.size() == 0) {
+			throw new BookingException("meeting non trovato");
+		}
+		if(list.size() > 1) {
+			throw new RuntimeException();
+		}
+		meeting = list.get(0);
+		if(meeting.getStatus() != 0) {
+			throw new BookingException("meeting non modificabile");
+		}
+		if(status < 0 || status > 2) {
+			throw new BookingException("staus non accettabile");
+		}
+		meeting.setStatus(status);
+		meetingRelationalRepository.save(meeting);
+		return true;
 	}
 
 }

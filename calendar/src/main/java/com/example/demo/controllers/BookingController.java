@@ -68,5 +68,40 @@ public class BookingController {
 	public List<MeetingData> viewMeetingsSlot(@AuthenticationPrincipal Jwt jwt, @RequestBody SlotData slot) {
 		return service.getMeetingsOnSlot(slot.getDate());
 	}
+	
+	@GetMapping("/view/invitations")
+	@PreAuthorize("hasAuthority('user')")
+	@AutoSignup
+	public List<ReservationPayload> viewInvitations(@AuthenticationPrincipal Jwt jwt) {
+		return service.getAllInvitations(jwt, 0);
+	}
+	
+	@GetMapping("/view/accepted")
+	@PreAuthorize("hasAuthority('user')")
+	@AutoSignup
+	public List<ReservationPayload> viewAccepted(@AuthenticationPrincipal Jwt jwt) {
+		return service.getAllInvitations(jwt, 1);
+	}
+	
+	@GetMapping("/view/refused")
+	@PreAuthorize("hasAuthority('user')")
+	@AutoSignup
+	public List<ReservationPayload> viewRefused(@AuthenticationPrincipal Jwt jwt) {
+		return service.getAllInvitations(jwt, 2);
+	}
+	
+	@GetMapping("/invitation/accept/{id_meeting}")
+	@PreAuthorize("hasAuthority('user')")
+	@AutoSignup
+	public boolean acceptInvitation(@AuthenticationPrincipal Jwt jwt, @PathVariable long id_meeting) {
+		return service.setInvitationStatus(jwt, id_meeting, 1);
+	}
+	
+	@GetMapping("/invitation/refuse/{id_meeting}")
+	@PreAuthorize("hasAuthority('user')")
+	@AutoSignup
+	public boolean refuseInvitation(@AuthenticationPrincipal Jwt jwt, @PathVariable long id_meeting) {
+		return service.setInvitationStatus(jwt, id_meeting, 2);
+	}
 
 }
