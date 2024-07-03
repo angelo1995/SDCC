@@ -14,7 +14,6 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.example.demo.annotations.FoundbleUser;
 import com.example.demo.data.DayofWeek;
-import com.example.demo.data.MeetingData;
 import com.example.demo.data.MeetingDetailData;
 import com.example.demo.data.MeetingPayload;
 import com.example.demo.data.MeetingResponse;
@@ -150,7 +149,7 @@ public class BookingService {
 		userRepository.save(costumer);
 		meetingRepository.save(reservationDB);
 		list.forEach((mr) -> meetingRelationalRepository.save(mr));
-		MeetingData meetingData = new MeetingData(reservationDB);
+		MeetingDetailData meetingData = new MeetingDetailData(reservationDB);
 		return new MeetingResponse(true, "prenotazione effettuata", meetingData);
 	}
 
@@ -276,10 +275,10 @@ public class BookingService {
 	}
 
 	@Transactional(readOnly = true)
-	public List<MeetingData> getMeetingsOnSlot(Timestamp date) {
+	public List<MeetingDetailData> getMeetingsOnSlot(Timestamp date) {
 		List<Meeting> meetings = meetingRepository.findBySlots_Date(date);
 		return meetings.stream()
-				.map(MeetingData::new)
+				.map(MeetingDetailData::new)
 				.toList();
 	}
 

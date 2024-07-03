@@ -15,7 +15,6 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.example.demo.annotations.AutoSignup;
-import com.example.demo.data.MeetingData;
 import com.example.demo.data.MeetingDetailData;
 import com.example.demo.data.MeetingPayload;
 import com.example.demo.data.MeetingResponse;
@@ -66,7 +65,7 @@ public class BookingController {
 	@PostMapping("/view/meetings/slot")
 	@PreAuthorize("hasAuthority('user')")
 	@AutoSignup
-	public List<MeetingData> viewMeetingsSlot(@AuthenticationPrincipal Jwt jwt, @RequestBody SlotData slot) {
+	public List<MeetingDetailData> viewMeetingsSlot(@AuthenticationPrincipal Jwt jwt, @RequestBody SlotData slot) {
 		return service.getMeetingsOnSlot(slot.getDate());
 	}
 	
