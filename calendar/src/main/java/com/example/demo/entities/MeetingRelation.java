@@ -1,5 +1,7 @@
 package com.example.demo.entities;
 
+import com.example.demo.enumerations.MeetingStatus;
+
 import jakarta.persistence.EmbeddedId;
 import jakarta.persistence.Entity;
 import jakarta.persistence.JoinColumn;

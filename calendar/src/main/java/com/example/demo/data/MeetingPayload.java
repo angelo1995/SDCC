@@ -12,7 +12,7 @@ import lombok.NoArgsConstructor;
 
 @NoArgsConstructor
 @Data
-public class ReservationPayload {
+public class MeetingPayload {
 	
 	private long id;
 	
@@ -28,7 +28,7 @@ public class ReservationPayload {
 	
 	private List<Long> guests;
 	
-	public ReservationPayload(Meeting reservation) {
+	public MeetingPayload(Meeting reservation) {
 		this.id = reservation.getId();
 		this.title = reservation.getTitle();
 		this.description = reservation.getDescription();
@@ -47,7 +47,7 @@ public class ReservationPayload {
 		this.duration = slots.size();
 	}
 	
-	public ReservationPayload(MeetingRelation reservation) {
+	public MeetingPayload(MeetingRelation reservation) {
 		this.id = reservation.getMeeting().getId();
 		this.title = reservation.getMeeting().getTitle();
 		this.description = reservation.getMeeting().getDescription();

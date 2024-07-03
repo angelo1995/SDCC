@@ -16,18 +16,18 @@ import com.example.demo.annotations.FoundbleUser;
 import com.example.demo.data.DayofWeek;
 import com.example.demo.data.MeetingData;
 import com.example.demo.data.MeetingDetailData;
-import com.example.demo.data.ReservationPayload;
-import com.example.demo.data.ReservationResponse;
+import com.example.demo.data.MeetingPayload;
+import com.example.demo.data.MeetingResponse;
 import com.example.demo.data.WindowWeekResponse;
 import com.example.demo.entities.Costumer;
 import com.example.demo.entities.Meeting;
 import com.example.demo.entities.MeetingRelation;
-import com.example.demo.entities.MeetingStatus;
 import com.example.demo.entities.Slot;
+import com.example.demo.enumerations.MeetingStatus;
 import com.example.demo.exceptions.BookingException;
 import com.example.demo.repositories.CostumerRepository;
 import com.example.demo.repositories.MeetingRelationRepository;
-import com.example.demo.repositories.ReservationRepository;
+import com.example.demo.repositories.MeetingRepository;
 import com.example.demo.repositories.SlotRepository;
 
 @Service
@@ -43,7 +43,7 @@ public class BookingService {
 	private CostumerRepository userRepository;
 
 	@Autowired
-	private ReservationRepository reservationRepository;
+	private MeetingRepository meetingRepository;
 
 	@Autowired
 	private MeetingRelationRepository meetingRelationalRepository;
@@ -51,15 +51,15 @@ public class BookingService {
 	@Autowired
 	private SlotRepository slotRepository;
 
-	private void checkBookingReservation(ReservationPayload reservation) {
-		if(reservation == null) {
+	private void checkBookingReservation(MeetingPayload meeting) {
+		if(meeting == null) {
 			throw new BookingException("prenotazione non effettuabile");
 		}
 		Calendar now = new GregorianCalendar();
 		Calendar reservation_date = new GregorianCalendar();
-		reservation_date.setTimeInMillis(reservation.getDate().getTime());
+		reservation_date.setTimeInMillis(meeting.getDate().getTime());
 		final int RESERVATION_HOUR = reservation_date.get(Calendar.HOUR_OF_DAY);
-		final int SLOT_LENGHT = reservation.getDuration();
+		final int SLOT_LENGHT = meeting.getDuration();
 		if(reservation_date.compareTo(now) < 0) {
 			throw new BookingException("impossibile prenotare uno slot passato");
 		}
@@ -72,13 +72,13 @@ public class BookingService {
 		if(Calendar.SUNDAY == reservation_date.get(Calendar.DAY_OF_WEEK)) {
 			throw new BookingException("non è prenotabile di domenica");
 		}
-		if(reservation.getTitle() == null || reservation.getTitle().isBlank()) {
+		if(meeting.getTitle() == null || meeting.getTitle().isBlank()) {
 			throw new BookingException("campo obbligatorio omesso");
 		}
-		if(reservation.getGuests().isEmpty()) {
+		if(meeting.getGuests().isEmpty()) {
 			return;
 		}
-		List<Long> list = reservation.getGuests().stream().sorted().toList();
+		List<Long> list = meeting.getGuests().stream().sorted().toList();
 		long previous = -1;		
 		long guest;
 		for(int i=0; i < list.size(); ++i) {
@@ -98,19 +98,19 @@ public class BookingService {
 
 	@Transactional(readOnly = false)
 	@FoundbleUser
-	public ReservationResponse bookingMeeting(Jwt jwt, ReservationPayload reservation) {
-		checkBookingReservation(reservation);
+	public MeetingResponse bookingMeeting(Jwt jwt, MeetingPayload meetingPayload) {
+		checkBookingReservation(meetingPayload);
 		String email = jwt.getClaimAsString("email");
 		Optional<Costumer> costumer_optional = userRepository.findByEmail(email);
 		Slot[] slots = null;
 		Slot slot = null;
 		Costumer costumer = null;
 		Timestamp date = null;
-		final int SLOT_LENGHT = reservation.getDuration();
+		final int SLOT_LENGHT = meetingPayload.getDuration();
 		Calendar reservation_date = new GregorianCalendar();
-		reservation_date.setTimeInMillis(reservation.getDate().getTime());
+		reservation_date.setTimeInMillis(meetingPayload.getDate().getTime());
 		slots = new Slot[SLOT_LENGHT];
-		date = reservation.getDate();
+		date = meetingPayload.getDate();
 		costumer = costumer_optional.get();
 		boolean overlap = false;
 
@@ -129,11 +129,11 @@ public class BookingService {
 			}
 		}
 
-		List<Costumer> list_costumer = reservation.getGuests().stream().map((id)-> userRepository.findById(id).get()).toList();
+		List<Costumer> list_costumer = meetingPayload.getGuests().stream().map((id)-> userRepository.findById(id).get()).toList();
 		
 		Meeting reservationDB = new Meeting();
-		reservationDB.setTitle(reservation.getTitle());
-		reservationDB.setDescription(reservation.getDescription());
+		reservationDB.setTitle(meetingPayload.getTitle());
+		reservationDB.setDescription(meetingPayload.getDescription());
 		reservationDB.setSlots(List.of(slots));
 		reservationDB.setUser(costumer);
 
@@ -148,18 +148,18 @@ public class BookingService {
 				.toList();
 		reservationDB.setMeetings(list);
 		userRepository.save(costumer);
-		reservationRepository.save(reservationDB);
+		meetingRepository.save(reservationDB);
 		list.forEach((mr) -> meetingRelationalRepository.save(mr));
 		MeetingData meetingData = new MeetingData(reservationDB);
-		return new ReservationResponse(true, "prenotazione effettuata", meetingData);
+		return new MeetingResponse(true, "prenotazione effettuata", meetingData);
 	}
 
 	@Transactional(readOnly = true)
 	@FoundbleUser
-	public List<ReservationPayload> getAllReservation(Jwt jwt){
+	public List<MeetingPayload> getAllReservation(Jwt jwt){
 		String email = jwt.getClaimAsString("email");
 		Costumer costumer = userRepository.findByEmail(email).get();
-		List<ReservationPayload> list = costumer.getReservations().stream().map(ReservationPayload::new).toList();
+		List<MeetingPayload> list = costumer.getReservations().stream().map(MeetingPayload::new).toList();
 		return list;
 	}
 
@@ -270,14 +270,14 @@ public class BookingService {
 
 	@Transactional(readOnly = true)
 	public MeetingDetailData getMeetingDetail(long id) {
-		Optional<Meeting> optional_meeting = reservationRepository.findById(id);
+		Optional<Meeting> optional_meeting = meetingRepository.findById(id);
 		MeetingDetailData meetingDetail = optional_meeting.map(MeetingDetailData::new).orElseThrow(() -> new BookingException("meeting non presente"));
 		return meetingDetail;
 	}
 
 	@Transactional(readOnly = true)
 	public List<MeetingData> getMeetingsOnSlot(Timestamp date) {
-		List<Meeting> meetings = reservationRepository.findBySlots_Date(date);
+		List<Meeting> meetings = meetingRepository.findBySlots_Date(date);
 		return meetings.stream()
 				.map(MeetingData::new)
 				.toList();
@@ -285,12 +285,12 @@ public class BookingService {
 
 	@Transactional(readOnly = true)
 	@FoundbleUser
-	public List<ReservationPayload> getAllInvitations(Jwt jwt, MeetingStatus status) {
+	public List<MeetingPayload> getAllInvitations(Jwt jwt, MeetingStatus status) {
 		String email = jwt.getClaimAsString("email");
 		Costumer costumer = userRepository.findByEmail(email).get();
-		List<ReservationPayload> list = costumer.getMeetings().stream()
+		List<MeetingPayload> list = costumer.getMeetings().stream()
 				.filter((m)-> m.getStatus().equals(status))
-				.map(ReservationPayload::new)
+				.map(MeetingPayload::new)
 				.toList();
 		return list;
 	}

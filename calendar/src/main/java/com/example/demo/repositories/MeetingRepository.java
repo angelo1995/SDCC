@@ -10,7 +10,7 @@ import org.springframework.stereotype.Repository;
 import com.example.demo.entities.Meeting;
 
 @Repository
-public interface ReservationRepository extends JpaRepository<Meeting, Long>{
+public interface MeetingRepository extends JpaRepository<Meeting, Long>{
 	
 	public Optional<Meeting> findById(long id);
 	

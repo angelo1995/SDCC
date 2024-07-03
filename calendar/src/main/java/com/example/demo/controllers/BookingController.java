@@ -17,12 +17,12 @@ import org.springframework.web.bind.annotation.RestController;
 import com.example.demo.annotations.AutoSignup;
 import com.example.demo.data.MeetingData;
 import com.example.demo.data.MeetingDetailData;
-import com.example.demo.data.ReservationPayload;
-import com.example.demo.data.ReservationResponse;
+import com.example.demo.data.MeetingPayload;
+import com.example.demo.data.MeetingResponse;
 import com.example.demo.data.SlotData;
 import com.example.demo.data.WindowWeekRequest;
 import com.example.demo.data.WindowWeekResponse;
-import com.example.demo.entities.MeetingStatus;
+import com.example.demo.enumerations.MeetingStatus;
 import com.example.demo.services.BookingService;
 
 import lombok.extern.slf4j.Slf4j;
@@ -39,9 +39,9 @@ public class BookingController {
 	@PostMapping("/meeting")
 	@PreAuthorize("hasAuthority('user')")
 	@AutoSignup
-	public ReservationResponse bookingMeeting(@AuthenticationPrincipal Jwt jwt, @RequestBody ReservationPayload reservation) {
-		log.info("input: " + reservation);
-		return service.bookingMeeting(jwt, reservation);
+	public MeetingResponse bookingMeeting(@AuthenticationPrincipal Jwt jwt, @RequestBody MeetingPayload meeting) {
+		log.info("input: " + meeting);
+		return service.bookingMeeting(jwt, meeting);
 	}
 	
 	@PostMapping("/view/meeting")
@@ -52,7 +52,7 @@ public class BookingController {
 	@GetMapping("/view/meeting")
 	@PreAuthorize("hasAuthority('user')")
 	@AutoSignup
-	public List<ReservationPayload> viewAllBooking(@AuthenticationPrincipal Jwt jwt) {
+	public List<MeetingPayload> viewAllBooking(@AuthenticationPrincipal Jwt jwt) {
 		return service.getAllReservation(jwt);
 	}
 	
@@ -73,21 +73,21 @@ public class BookingController {
 	@GetMapping("/view/invitations")
 	@PreAuthorize("hasAuthority('user')")
 	@AutoSignup
-	public List<ReservationPayload> viewInvitations(@AuthenticationPrincipal Jwt jwt) {
+	public List<MeetingPayload> viewInvitations(@AuthenticationPrincipal Jwt jwt) {
 		return service.getAllInvitations(jwt, MeetingStatus.INVITATION);
 	}
 	
 	@GetMapping("/view/accepted")
 	@PreAuthorize("hasAuthority('user')")
 	@AutoSignup
-	public List<ReservationPayload> viewAccepted(@AuthenticationPrincipal Jwt jwt) {
+	public List<MeetingPayload> viewAccepted(@AuthenticationPrincipal Jwt jwt) {
 		return service.getAllInvitations(jwt, MeetingStatus.ACCEPTED);
 	}
 	
 	@GetMapping("/view/refused")
 	@PreAuthorize("hasAuthority('user')")
 	@AutoSignup
-	public List<ReservationPayload> viewRefused(@AuthenticationPrincipal Jwt jwt) {
+	public List<MeetingPayload> viewRefused(@AuthenticationPrincipal Jwt jwt) {
 		return service.getAllInvitations(jwt, MeetingStatus.REFUSED);
 	}
 	
