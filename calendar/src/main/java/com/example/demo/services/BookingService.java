@@ -22,6 +22,7 @@ import com.example.demo.data.WindowWeekResponse;
 import com.example.demo.entities.Costumer;
 import com.example.demo.entities.Meeting;
 import com.example.demo.entities.MeetingRelation;
+import com.example.demo.entities.MeetingStatus;
 import com.example.demo.entities.Slot;
 import com.example.demo.exceptions.BookingException;
 import com.example.demo.repositories.CostumerRepository;
@@ -142,7 +143,9 @@ public class BookingService {
 			slotRepository.save(slots[i]);
 		}
 		
-		List<MeetingRelation> list = list_costumer.stream().map((guest)-> new MeetingRelation(guest, reservationDB, 0)).toList();
+		List<MeetingRelation> list = list_costumer.stream()
+				.map((guest)-> new MeetingRelation(guest, reservationDB, MeetingStatus.INVITATION))
+				.toList();
 		reservationDB.setMeetings(list);
 		userRepository.save(costumer);
 		reservationRepository.save(reservationDB);
@@ -282,11 +285,11 @@ public class BookingService {
 
 	@Transactional(readOnly = true)
 	@FoundbleUser
-	public List<ReservationPayload> getAllInvitations(Jwt jwt, int status) {
+	public List<ReservationPayload> getAllInvitations(Jwt jwt, MeetingStatus status) {
 		String email = jwt.getClaimAsString("email");
 		Costumer costumer = userRepository.findByEmail(email).get();
 		List<ReservationPayload> list = costumer.getMeetings().stream()
-				.filter((m)-> m.getStatus() == status)
+				.filter((m)-> m.getStatus().equals(status))
 				.map(ReservationPayload::new)
 				.toList();
 		return list;
@@ -294,7 +297,7 @@ public class BookingService {
 	
 	@Transactional(readOnly = false)
 	@FoundbleUser
-	public boolean setInvitationStatus(Jwt jwt, long id_meeting, int status) {
+	public boolean setInvitationStatus(Jwt jwt, long id_meeting, MeetingStatus status) {
 		String email = jwt.getClaimAsString("email");
 		Costumer costumer = userRepository.findByEmail(email).get();
 		MeetingRelation meeting = null;
@@ -306,10 +309,10 @@ public class BookingService {
 			throw new RuntimeException();
 		}
 		meeting = list.get(0);
-		if(meeting.getStatus() != 0) {
+		if(!meeting.getStatus().equals(MeetingStatus.INVITATION)) {
 			throw new BookingException("meeting non modificabile");
 		}
-		if(status < 0 || status > 2) {
+		if(status.equals(MeetingStatus.CANCELLED)) {
 			throw new BookingException("staus non accettabile");
 		}
 		meeting.setStatus(status);

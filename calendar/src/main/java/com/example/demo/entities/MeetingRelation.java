@@ -1,7 +1,5 @@
 package com.example.demo.entities;
 
-import jakarta.persistence.Basic;
-import jakarta.persistence.Column;
 import jakarta.persistence.EmbeddedId;
 import jakarta.persistence.Entity;
 import jakarta.persistence.JoinColumn;
@@ -29,12 +27,10 @@ public class MeetingRelation {
     @MapsId("meetingId")
     @JoinColumn(name = "meeting_id")
     private Meeting meeting;
+    
+    private MeetingStatus status;
 
-    @Basic
-    @Column(nullable = true)
-    private int status;
-
-	public MeetingRelation(Costumer costumer, Meeting meeting, int status) {
+	public MeetingRelation(Costumer costumer, Meeting meeting, MeetingStatus status) {
 		this.costumer = costumer;
 		this.meeting = meeting;
 		this.status = status;

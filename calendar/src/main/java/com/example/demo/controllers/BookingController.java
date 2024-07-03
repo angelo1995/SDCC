@@ -22,6 +22,7 @@ import com.example.demo.data.ReservationResponse;
 import com.example.demo.data.SlotData;
 import com.example.demo.data.WindowWeekRequest;
 import com.example.demo.data.WindowWeekResponse;
+import com.example.demo.entities.MeetingStatus;
 import com.example.demo.services.BookingService;
 
 import lombok.extern.slf4j.Slf4j;
@@ -73,35 +74,35 @@ public class BookingController {
 	@PreAuthorize("hasAuthority('user')")
 	@AutoSignup
 	public List<ReservationPayload> viewInvitations(@AuthenticationPrincipal Jwt jwt) {
-		return service.getAllInvitations(jwt, 0);
+		return service.getAllInvitations(jwt, MeetingStatus.INVITATION);
 	}
 	
 	@GetMapping("/view/accepted")
 	@PreAuthorize("hasAuthority('user')")
 	@AutoSignup
 	public List<ReservationPayload> viewAccepted(@AuthenticationPrincipal Jwt jwt) {
-		return service.getAllInvitations(jwt, 1);
+		return service.getAllInvitations(jwt, MeetingStatus.ACCEPTED);
 	}
 	
 	@GetMapping("/view/refused")
 	@PreAuthorize("hasAuthority('user')")
 	@AutoSignup
 	public List<ReservationPayload> viewRefused(@AuthenticationPrincipal Jwt jwt) {
-		return service.getAllInvitations(jwt, 2);
+		return service.getAllInvitations(jwt, MeetingStatus.REFUSED);
 	}
 	
 	@GetMapping("/invitation/accept/{id_meeting}")
 	@PreAuthorize("hasAuthority('user')")
 	@AutoSignup
 	public boolean acceptInvitation(@AuthenticationPrincipal Jwt jwt, @PathVariable long id_meeting) {
-		return service.setInvitationStatus(jwt, id_meeting, 1);
+		return service.setInvitationStatus(jwt, id_meeting, MeetingStatus.ACCEPTED);
 	}
 	
 	@GetMapping("/invitation/refuse/{id_meeting}")
 	@PreAuthorize("hasAuthority('user')")
 	@AutoSignup
 	public boolean refuseInvitation(@AuthenticationPrincipal Jwt jwt, @PathVariable long id_meeting) {
-		return service.setInvitationStatus(jwt, id_meeting, 2);
+		return service.setInvitationStatus(jwt, id_meeting, MeetingStatus.REFUSED);
 	}
 
 }
