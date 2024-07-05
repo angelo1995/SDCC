@@ -7,6 +7,7 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.web.bind.annotation.CrossOrigin;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -72,21 +73,21 @@ public class BookingController {
 	@GetMapping("/view/invitations")
 	@PreAuthorize("hasAuthority('user')")
 	@AutoSignup
-	public List<MeetingPayload> viewInvitations(@AuthenticationPrincipal Jwt jwt) {
+	public List<MeetingDetailData> viewInvitations(@AuthenticationPrincipal Jwt jwt) {
 		return service.getAllInvitations(jwt, MeetingStatus.INVITATION);
 	}
 	
 	@GetMapping("/view/accepted")
 	@PreAuthorize("hasAuthority('user')")
 	@AutoSignup
-	public List<MeetingPayload> viewAccepted(@AuthenticationPrincipal Jwt jwt) {
+	public List<MeetingDetailData> viewAccepted(@AuthenticationPrincipal Jwt jwt) {
 		return service.getAllInvitations(jwt, MeetingStatus.ACCEPTED);
 	}
 	
 	@GetMapping("/view/refused")
 	@PreAuthorize("hasAuthority('user')")
 	@AutoSignup
-	public List<MeetingPayload> viewRefused(@AuthenticationPrincipal Jwt jwt) {
+	public List<MeetingDetailData> viewRefused(@AuthenticationPrincipal Jwt jwt) {
 		return service.getAllInvitations(jwt, MeetingStatus.REFUSED);
 	}
 	
@@ -102,6 +103,20 @@ public class BookingController {
 	@AutoSignup
 	public boolean refuseInvitation(@AuthenticationPrincipal Jwt jwt, @PathVariable long id_meeting) {
 		return service.setInvitationStatus(jwt, id_meeting, MeetingStatus.REFUSED);
+	}
+	
+	@DeleteMapping("/invitation/delete/{id_meeting}")
+	@PreAuthorize("hasAuthority('user')")
+	@AutoSignup
+	public boolean deleteInvitation(@AuthenticationPrincipal Jwt jwt, @PathVariable long id_meeting) {
+		return service.invisible(jwt, id_meeting);
+	}
+	
+	@DeleteMapping("/cancel/{id_meeting}")
+	@PreAuthorize("hasAuthority('user')")
+	@AutoSignup
+	public boolean cancelMeeting(@AuthenticationPrincipal Jwt jwt, @PathVariable long id_meeting) {
+		return service.cancelMeeting(jwt, id_meeting);
 	}
 
 }

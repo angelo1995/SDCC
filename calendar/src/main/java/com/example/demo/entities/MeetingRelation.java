@@ -2,6 +2,8 @@ package com.example.demo.entities;
 
 import com.example.demo.enumerations.MeetingStatus;
 
+import jakarta.persistence.Basic;
+import jakarta.persistence.Column;
 import jakarta.persistence.EmbeddedId;
 import jakarta.persistence.Entity;
 import jakarta.persistence.JoinColumn;
@@ -31,6 +33,10 @@ public class MeetingRelation {
     private Meeting meeting;
     
     private MeetingStatus status;
+    
+    @Basic
+    @Column(nullable = false)
+    private boolean visible = true;
 
 	public MeetingRelation(Costumer costumer, Meeting meeting, MeetingStatus status) {
 		this.costumer = costumer;

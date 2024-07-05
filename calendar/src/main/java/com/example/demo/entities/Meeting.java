@@ -3,6 +3,7 @@ package com.example.demo.entities;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.example.demo.enumerations.MeetingPriority;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
 import jakarta.persistence.Basic;
@@ -40,13 +41,12 @@ public class Meeting {
     @Column(nullable = true)
     private String title;
     
-    @Basic
     @Column(nullable = true)
-    private int priority;
+    private MeetingPriority priority;
     
     @Basic
-    @Column(nullable = true)
-    private boolean open;
+    @Column(nullable = false)
+    private boolean cancelled = false;
     
     @ManyToOne
     @JoinColumn(name = "user_id")
@@ -73,19 +73,6 @@ public class Meeting {
 	public Meeting(String description, Costumer user) {
 		this.description = description;
 		this.user = user;
-	}
-	
-	public String getPriorityAsString() {
-		if(this.priority < 0 || this.priority > 3) {
-			throw new IllegalStateException();
-		}
-		if(this.priority == 0) {
-			return "bassa";
-		}
-		if(this.priority == 1) {
-			return "media";
-		}
-		return "alta";
 	}
 	
 }

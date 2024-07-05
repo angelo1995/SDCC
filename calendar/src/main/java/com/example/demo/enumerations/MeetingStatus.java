@@ -1,17 +1,18 @@
 package com.example.demo.enumerations;
 
+import lombok.Getter;
+
+@Getter
 public enum MeetingStatus {
 	
-	INVITATION(0), ACCEPTED(1), REFUSED(2), CANCELLED(3);
+	INVITATION(0, ""), ACCEPTED(1, "(presente)"), REFUSED(2, "(assente)");
 	
 	private Integer code;
+	private String message;
 
-    private MeetingStatus(Integer code) {
+    private MeetingStatus(Integer code, String message) {
         this.code = code;
-    }
-
-    public Integer getCode() {
-        return code;
+        this.message = message;
     }
 
 }

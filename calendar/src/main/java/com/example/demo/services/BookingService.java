@@ -22,21 +22,23 @@ import com.example.demo.entities.Costumer;
 import com.example.demo.entities.Meeting;
 import com.example.demo.entities.MeetingRelation;
 import com.example.demo.entities.Slot;
+import com.example.demo.enumerations.MeetingPriority;
 import com.example.demo.enumerations.MeetingStatus;
 import com.example.demo.exceptions.BookingException;
 import com.example.demo.repositories.CostumerRepository;
 import com.example.demo.repositories.MeetingRelationRepository;
 import com.example.demo.repositories.MeetingRepository;
 import com.example.demo.repositories.SlotRepository;
+import com.example.demo.utils.CostantProvider;
 
 @Service
 public class BookingService {
-
-	private static final int MIN_DURATION = 1;
-	private static final int MAX_DURATION = 4;
-	private static final int OPEN_HOUR = 8;
-	private static final int CLOSED_HOUR = 19;
-	private static final long ONE_HOUR_IN_MILLIS = 60L*60L*1_000L;
+	
+	private final int MIN_DURATION;
+	private final int MAX_DURATION;
+	private final int OPEN_HOUR;
+	private final int CLOSED_HOUR;
+	private final long ONE_HOUR_IN_MILLIS = 60L*60L*1_000L;
 
 	@Autowired
 	private CostumerRepository userRepository;
@@ -49,6 +51,13 @@ public class BookingService {
 
 	@Autowired
 	private SlotRepository slotRepository;
+	
+	public BookingService(CostantProvider costantProvider) {
+		MIN_DURATION = costantProvider.getMinDuration();
+		MAX_DURATION = costantProvider.getMaxDuration();
+		OPEN_HOUR = costantProvider.getOpenHour();
+		CLOSED_HOUR = costantProvider.getClosedHour();
+	}
 
 	private void checkBookingReservation(MeetingPayload meeting) {
 		if(meeting == null) {
@@ -122,26 +131,29 @@ public class BookingService {
 		}
 		List<Timestamp> list_slot = List.of(slots).stream().map((s)-> s.getDate()).toList();
 		for(Meeting meeting : costumer.getReservations()) {
-			overlap = meeting.getSlots().stream().map((s)-> s.getDate()).anyMatch((t)-> list_slot.contains(t));
+			overlap = meeting.getSlots().stream().filter((s)-> s.isOccupied()).map((s)-> s.getDate()).anyMatch((t)-> list_slot.contains(t));
 			if(overlap) {
 				throw new BookingException("prenotazione non effettuabile");
 			}
 		}
 
 		List<Costumer> list_costumer = meetingPayload.getGuests().stream().map((id)-> userRepository.findById(id).get()).toList();
-		
+
 		Meeting reservationDB = new Meeting();
 		reservationDB.setTitle(meetingPayload.getTitle());
 		reservationDB.setDescription(meetingPayload.getDescription());
 		reservationDB.setSlots(List.of(slots));
 		reservationDB.setUser(costumer);
+		if(meetingPayload.getPriority() != null) {
+			reservationDB.setPriority(MeetingPriority.getPriorityFromString(meetingPayload.getPriority()));
+		}
 
 		costumer.getReservations().add(reservationDB);
 
 		for(int i=0; i < SLOT_LENGHT; ++i) {
 			slotRepository.save(slots[i]);
 		}
-		
+
 		List<MeetingRelation> list = list_costumer.stream()
 				.map((guest)-> new MeetingRelation(guest, reservationDB, MeetingStatus.INVITATION))
 				.toList();
@@ -284,16 +296,23 @@ public class BookingService {
 
 	@Transactional(readOnly = true)
 	@FoundbleUser
-	public List<MeetingPayload> getAllInvitations(Jwt jwt, MeetingStatus status) {
+	public List<MeetingDetailData> getAllInvitations(Jwt jwt, MeetingStatus status) {
 		String email = jwt.getClaimAsString("email");
 		Costumer costumer = userRepository.findByEmail(email).get();
-		List<MeetingPayload> list = costumer.getMeetings().stream()
-				.filter((m)-> m.getStatus().equals(status))
-				.map(MeetingPayload::new)
+		Calendar now = new GregorianCalendar();
+		Calendar end_meeting = new GregorianCalendar();
+		List<MeetingDetailData> list = costumer.getMeetings().stream()
+				.filter((m)-> {
+					List<Timestamp> timestamps = m.getMeeting().getSlots().stream().map((s)-> s.getDate()).sorted().toList();
+					Timestamp end = timestamps.get(timestamps.size() - 1);
+					end_meeting.setTimeInMillis(end.getTime() + ONE_HOUR_IN_MILLIS);
+					return m.getStatus().equals(status) && m.isVisible() && end_meeting.compareTo(now) > 0;
+				})
+				.map(MeetingDetailData::new)
 				.toList();
 		return list;
 	}
-	
+
 	@Transactional(readOnly = false)
 	@FoundbleUser
 	public boolean setInvitationStatus(Jwt jwt, long id_meeting, MeetingStatus status) {
@@ -311,11 +330,45 @@ public class BookingService {
 		if(!meeting.getStatus().equals(MeetingStatus.INVITATION)) {
 			throw new BookingException("meeting non modificabile");
 		}
-		if(status.equals(MeetingStatus.CANCELLED)) {
-			throw new BookingException("staus non accettabile");
-		}
 		meeting.setStatus(status);
 		meetingRelationalRepository.save(meeting);
+		return true;
+	}
+
+	@Transactional(readOnly = false)
+	@FoundbleUser
+	public boolean invisible(Jwt jwt, long id_meeting) {
+		String email = jwt.getClaimAsString("email");
+		Costumer costumer = userRepository.findByEmail(email).get();
+		MeetingRelation meeting = null;
+		List<MeetingRelation> list = costumer.getMeetings().stream().filter((m)-> m.getMeeting().getId() == id_meeting).toList();
+		if(list.size() == 0) {
+			throw new BookingException("meeting non trovato");
+		}
+		if(list.size() > 1) {
+			throw new RuntimeException();
+		}
+		meeting = list.get(0);
+		meeting.setVisible(false);
+		meetingRelationalRepository.save(meeting);
+		return true;
+	}
+
+	@Transactional(readOnly = false)
+	@FoundbleUser
+	public boolean cancelMeeting(Jwt jwt, long id_meeting) {
+		String email = jwt.getClaimAsString("email");
+		Costumer costumer = userRepository.findByEmail(email).get();
+		Meeting meeting = meetingRepository.findById(id_meeting).orElseThrow(BookingException::new);
+		if(!meeting.getUser().equals(costumer)) {
+			throw new BookingException("costumer not owner");
+		}
+		meeting.setCancelled(true);
+		meetingRepository.save(meeting);
+		meeting.getSlots().stream().forEach((s)-> {
+			s.setOccupied(false);
+			slotRepository.save(s);
+		});
 		return true;
 	}
 
