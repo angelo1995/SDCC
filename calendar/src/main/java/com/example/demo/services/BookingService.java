@@ -60,6 +60,7 @@ public class BookingService {
 	}
 
 	private void checkBookingReservation(MeetingPayload meeting) {
+		//log.info("" + meeting);
 		if(meeting == null) {
 			throw new BookingException("prenotazione non effettuabile");
 		}

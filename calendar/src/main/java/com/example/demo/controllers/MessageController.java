@@ -15,9 +15,21 @@ public class MessageController {
 	@GetMapping("/home")
 	public MessageData home() {
 		MessageData message = new MessageData();
+		String title = "Home";
 		String body = "Descrizione home";
 		
-		message.setTitle("Home");
+		message.setTitle(title);
+		message.setBody(body);
+		return message;
+	}
+	
+	@GetMapping("/aboutUs")
+	public MessageData aboutUs() {
+		MessageData message = new MessageData();
+		String title = "About us";
+		String body = "Descrizione About us";
+		
+		message.setTitle(title);
 		message.setBody(body);
 		return message;
 	}
