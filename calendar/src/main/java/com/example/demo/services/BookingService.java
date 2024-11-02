@@ -132,13 +132,19 @@ public class BookingService {
 		}
 		List<Timestamp> list_slot = List.of(slots).stream().map((s)-> s.getDate()).toList();
 		for(Meeting meeting : costumer.getReservations()) {
-			overlap = meeting.getSlots().stream().filter((s)-> s.isOccupied()).map((s)-> s.getDate()).anyMatch((t)-> list_slot.contains(t));
+			overlap = meeting.getSlots()
+					.stream()
+					.filter((s)-> s.isOccupied())
+					.map((s)-> s.getDate())
+					.anyMatch((t)-> list_slot.contains(t));
 			if(overlap) {
 				throw new BookingException("prenotazione non effettuabile");
 			}
 		}
 
-		List<Costumer> list_costumer = meetingPayload.getGuests().stream().map((id)-> userRepository.findById(id).get()).toList();
+		List<Costumer> list_costumer = meetingPayload.getGuests().stream()
+				.map((id)-> userRepository.findById(id).get())
+				.toList();
 
 		Meeting reservationDB = new Meeting();
 		reservationDB.setTitle(meetingPayload.getTitle());

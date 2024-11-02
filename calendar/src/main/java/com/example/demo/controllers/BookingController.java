@@ -25,12 +25,9 @@ import com.example.demo.data.WindowWeekResponse;
 import com.example.demo.enumerations.MeetingStatus;
 import com.example.demo.services.BookingService;
 
-import lombok.extern.slf4j.Slf4j;
-
 @RestController
 @RequestMapping("/book")
 @CrossOrigin(origins="*", maxAge=3600)
-@Slf4j
 public class BookingController {
 	
 	@Autowired
@@ -39,8 +36,8 @@ public class BookingController {
 	@PostMapping("/meeting")
 	@PreAuthorize("hasAuthority('user')")
 	@AutoSignup
-	public MeetingResponse bookingMeeting(@AuthenticationPrincipal Jwt jwt, @RequestBody MeetingPayload meeting) {
-		log.info("input: " + meeting);
+	public MeetingResponse bookingMeeting(@AuthenticationPrincipal Jwt jwt, 
+			@RequestBody MeetingPayload meeting) {
 		return service.bookingMeeting(jwt, meeting);
 	}
 	
